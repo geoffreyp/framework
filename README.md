@@ -23,70 +23,106 @@ The package is available in pypi with a linux environment for python 3.6, 3.7, 3
     
 # Example
 
-    from moead_framework.aggregation import Tchebycheff
-    from moead_framework.algorithm.combinatorial import Moead
-    from moead_framework.problem.combinatorial import Rmnk
-    from moead_framework.tool.result import save_population
+The example requires two files : 
+
+- ```instance_file``` is required by the [problem](https://moead-framework.github.io/framework/html/moead_framework/moead_framework.problem.combinatorial.rmnk.Rmnk.html#moead_framework.problem.combinatorial.rmnk.Rmnk). The file is available in the framework 
+  in "moead_framework/test/data/instances/" or can be downloaded 
+  from [https://github.com/moead-framework/data/tree/master/problem/RMNK/Instances](https://github.com/moead-framework/data/tree/master/problem/RMNK/Instances)
+  
+- ```weight_file``` is required by the [algorithm](https://moead-framework.github.io/framework/html/moead_framework/moead_framework.algorithm.combinatorial.moead.Moead.html#moead_framework.algorithm.combinatorial.moead.Moead). The file is available in the framework 
+  in "moead_framework/test/data/weights/" or can be downloaded 
+  from [https://github.com/moead-framework/data/tree/master/weights](https://github.com/moead-framework/data/tree/master/weights)
+  
+```python
+from moead_framework.aggregation import Tchebycheff   
+from moead_framework.algorithm.combinatorial import Moead   
+from moead_framework.problem.combinatorial import Rmnk  
+from moead_framework.tool.result import save_population
     
     
-    ###############################
-    #   Initialize the problem    #
-    ###############################
-    # The file is available here : https://github.com/moead-framework/data/blob/master/problem/RMNK/Instances/rmnk_0_2_100_1_0.dat
-    # Others instances are available here : https://github.com/moead-framework/data/tree/master/problem/RMNK/Instances
-    instance_file = "rmnk_0_2_100_1_0.dat"
-    rmnk = Rmnk(instance_file=instance_file)
+###############################
+#   Initialize the problem    #
+###############################
+# The file is available here : https://github.com/moead-framework/data/blob/master/problem/RMNK/Instances/rmnk_0_2_100_1_0.dat
+# Others instances are available here : https://github.com/moead-framework/data/tree/master/problem/RMNK/Instances
+instance_file = "rmnk_0_2_100_1_0.dat"
+rmnk = Rmnk(instance_file=instance_file)
     
     
-    #####################################
-    #      Initialize the algorithm     #
-    #####################################
-    number_of_objective = rmnk.number_of_objective
-    number_of_weight = 10
-    number_of_weight_neighborhood = 20
-    number_of_evaluations = 1000
-    # The file is available here : https://github.com/moead-framework/data/blob/master/weights/SOBOL-2objs-10wei.ws
-    # Others weights files are available here : https://github.com/moead-framework/data/tree/master/weights
-    weight_file = "SOBOL-" + str(number_of_objective) + "objs-" + str(number_of_weight) + "wei.ws"
+#####################################
+#      Initialize the algorithm     #
+#####################################
+number_of_weight = 10
+number_of_weight_neighborhood = 2
+number_of_evaluations = 1000
+# The file is available here : https://github.com/moead-framework/data/blob/master/weights/SOBOL-2objs-10wei.ws
+# Others weights files are available here : https://github.com/moead-framework/data/tree/master/weights
+weight_file = "SOBOL-" + str(rmnk.number_of_objective) + "objs-" + str(number_of_weight) + "wei.ws"
     
     
-    ###############################
-    #    Execute the algorithm    #
-    ###############################
-    moead = Moead(problem=rmnk,
-                  max_evaluation=number_of_evaluations,
-                  number_of_weight_neighborhood=number_of_weight_neighborhood,
-                  weight_file=weight_file,
-                  aggregation_function=Tchebycheff,
-                  )
+###############################
+#    Execute the algorithm    #
+###############################
+moead = Moead(problem=rmnk,
+                max_evaluation=number_of_evaluations,
+                number_of_weight_neighborhood=number_of_weight_neighborhood,
+                weight_file=weight_file,
+                aggregation_function=Tchebycheff,
+                )
     
-    population = moead.run()
+population = moead.run()
     
     
-    ###############################
-    #       Save the result       #
-    ###############################
-    save_file = "moead-rmnk" + str(number_of_objective) \
+###############################
+#       Save the result       #
+###############################
+save_file = "moead-rmnk" + str(rmnk.number_of_objective) \
                 + "-N" + str(number_of_weight) \
                 + "-T" + str(number_of_weight_neighborhood) \
-                + "-CP" + str(number_of_crossover_points) \
                 + "-iter" + str(number_of_evaluations) \
                 + ".txt"
     
-    save_population(save_file, population)
+save_population(save_file, population)
+```
 
+# How to contribute
 
+[A guide is available](https://github.com/moead-framework/framework/blob/master/CONTRIBUTING.md) to explain the 
+process of contributing to the project. The contribution can be the report of a bug, the request for a new feature or 
+modifying the code of the framework to improve it.
+
+We have [a code of conduct](https://github.com/moead-framework/framework/blob/master/CODE_OF_CONDUCT.md), please follow it in all your interactions with the project.
 
 # For developers 
 
-## build: 
+## Requirements for developers
 
-You can execute unit test with the following command in the git repository: 
+These requirements must be installed to use the commands in the following sections (unit test, documentation, package) :
+
+    pip install -r requirements.txt
+
+    pip install -r requirements-dev.txt
+
+## Tests: 
+
+You can execute unit tests with the following command in the git repository: 
 
     python3 -m unittest 
 
+## Generate the documentation locally
 
-The package is build with a github action. If you want to create manually a new package: 
+The documentation can be generated locally if you want check changes. The documentation is generated with sphinx 2.4.4 (see the section 'Requirements for developers').
+
+You can generate the documentation with the following commands :
+
+    cd docs/
+
+    make html
+
+
+## Build the package
+
+The package is built with a github action. If you want to create manually a new package: 
 
     python3 setup.py sdist bdist_wheel
  

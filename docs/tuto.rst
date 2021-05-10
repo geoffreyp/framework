@@ -6,50 +6,32 @@ Tutorials
 .. _tuto-problem:
 Implement your own problem
 --------------------------------------
-To make your problem compliant with the framework, your problem class have to extend the class :class:`moead_framework.problem.Problem` 
-and also implement the 3 required functions : 
+To make your problem compliant with the framework, your problem class has to extend the class :class:`moead_framework.problem.Problem`
+and implement the following 2 required functions :
 
-- the fitness function :code:`f(function_id, solution)` has 2 required parameters. The function must returns the objectif value of the solution 
-  for the objective function_id in parameter.
+- the fitness function :code:`f(function_id, solution)` has 2 required parameters. The function must return the objective value of the given ``solution``
+  for the objective specified by ``function_id``.
 
-  .. note:: For a better compatibility with components, problems should be converted in minimization problems.
+.. note:: For compatibility with existing components, problems should be converted to minimization problems.
 
 .. code-block:: python
-    
+
     def f(self, function_id, solution):
         ...
         return objective_value
 
 
 
-- The function :code:`generate_solution(array, evaluate)` allows to generate a solution. A solution is an object OneDimensionSolution that contains the representation of the solution in the attribute solution and all fitness values in the F attribute. 
- 
- .. note:: All components of the framework available in this version are only compatible with OneDimensionSolution. If you want manage new type of solutions, you have to adapt other components of the framework. 
- 
- The function :code:`generate_solution(array, evaluate)` takes in parameter the representation of the function and the boolean :code:`evaluate` 
- that determine if the solution save the fitness, the default value must be "True".
 
-.. code-block:: python
-    
-        def generate_solution(self, array, evaluate=True):
-            x = OneDimensionSolution(array)
-
-            for j in range(self.function_numbers):
-                if evaluate:
-                    x.F.append(self.f(j, x.solution))
-                else:
-                    x.F.append(None)
-
-            return x
-  
-
-- The function :code:`generate_random_solution(evaluate)` generates a solution **randomly** in the same way than the previous function.
+- The function :code:`generate_random_solution()` generates a solution **randomly**. You can see an example to generate pseudo-boolean solutions :
 
 .. code-block:: python
 
-    def generate_random_solution(self, evaluate=True):
-        return self.generate_solution(array=np.random.randint(0, 2, self.object_number).tolist()[:], evaluate=evaluate)
+    def generate_random_solution(self):
+        return self.evaluate(x=np.random.randint(0, 2, self.number_of_objects).tolist()[:])
 
+
+Examples are available in this repository : https://github.com/moead-framework/framework/tree/master/moead_framework/problem/combinatorial.
 
 
 .. _tuto-algo:
@@ -57,8 +39,8 @@ Implement your own algorithm
 --------------------------------------------------------------------
 
 All components are set with default values to implement the first version of **MOEA/D**.
-You can customize each algorithms of the framework with your own
-components that you can set in parameter of the algorithm contructor.
+You can customize each algorithm in the framework with your own
+components that you can set as parameter of the algorithm contructor.
 
 Example for :class:`moead_framework.algorithm.combinatorial.moead` :
 
@@ -81,14 +63,14 @@ Example for :class:`moead_framework.algorithm.combinatorial.moead` :
               sps_strategy=SpsAllSubproblems,
               offspring_generator=OffspringGeneratorGeneric
               )
-    
-    
 
-If you want manage the way to use all this components, you have to create
+
+
+If you want to manage the way to use all these components, you have to create
 a new algorithm by extending an available algorithm. Examples are available in this repository : https://github.com/moead-framework/framework/tree/master/moead_framework/algorithm.
 
-For example with the implementation of MOEA/D-DE :cite:`moead_de` in the class :class:`moead_framework.algorithm.combinatorial.moead_delta_nr` that extends **Moead** to rewrite the 
-function update_solutions() and add two new parameters. 
+An example is the implementation of MOEA/D-DE :cite:`moead_de` in the class :class:`moead_framework.algorithm.combinatorial.moead_delta_nr` that extends **Moead** to rewrite the
+function ``update_solutions()`` and adds two new parameters.
 
 
 Manage the reproducibility of results
@@ -96,9 +78,9 @@ Manage the reproducibility of results
 
 Reproducibility of results is a major principle for scientific research.
 The feature used here is not specific to the framework but
-can be used for every python project that uses the random and numpy modules.
+can be used for every python project that uses the `numpy` and built-in `random` modules.
 
-Because the framework uses the random and numpy modules, you can be sure
+Because the framework uses the `random` and `numpy` modules, you can be sure
 to have the same results by running the same script several times if you
 add the following instructions before initializing problems or algorithms:
 
@@ -112,7 +94,7 @@ add the following instructions before initializing problems or algorithms:
     np.random.seed(seed)
 
 
-You can find more information with the following links:
+You can find more information at the following links:
 
 - https://docs.python.org/3/library/random.html
 - https://numpy.org/doc/stable/reference/random/generated/numpy.random.seed.html
@@ -121,11 +103,11 @@ You can find more information with the following links:
 Save data with the framework
 --------------------------------------------------------------------
 
-You can easily save a set of solutions by using the function :code:`save_population("population.txt", population)`. 
+You can easily save a set of solutions by using the function :code:`save_population("population.txt", population)`.
 The function must be imported with : :code:`from moead_framework.tool.result import save_population`.
 
 
-If you want save all non-dominated solutions (attribute :code:`self.ep` in the algorithm) every 10 evaluations, you can use the checkpoint parameter of the function :code:`algorithm.run()` :
+If you want to save all non-dominated solutions (attribute :code:`self.ep` in the algorithm) every e.g. 10 evaluations, you can use the checkpoint parameter of the function :code:`algorithm.run()` :
 
 
 .. code-block:: python
@@ -139,8 +121,51 @@ If you want save all non-dominated solutions (attribute :code:`self.ep` in the a
               )
 
     def checkpt():
-        if moead.current_eval % 10 ==0 :      
+        if moead.current_eval % 10 ==0 :
             filename = "non_dominated_solutions-eval" + str(moead.current_eval) + ".txt"
             save_population(file_name=filename, population=moead.ep)
-    
+
     moead.run(checkpoint=checkpt)
+
+
+Extract and plot the Pareto front
+--------------------------------------------------------------------
+
+The method `run()` of each algorithm returns a list of :class:`moead_framework.solution.one_dimension_solution.OneDimensionSolution`.
+
+.. code-block:: python
+
+    moead = Moead(
+              problem=rmnk,
+              max_evaluation = number_of_evaluations,
+              number_of_weight_neighborhood=number_of_weight_neighborhood,
+              weight_file=weight_file,
+              aggregation_function=Tchebycheff
+              )
+
+    list_of_solutions = moead.run(checkpoint=checkpt)
+
+
+You can then extract the Pareto set and the Pareto front :
+
+.. code-block:: python
+
+    pareto_front = []
+    pareto_set = []
+
+    for solution_object in list_of_solutions:
+        pareto_front.append(solution_object.F)
+        pareto_set.append(solution_object.decision_vector)
+
+
+If you want plot the Pareto front with matplotlib, you can do it with :
+
+.. code-block:: python
+
+    from matplotlib import pyplot as plt
+    import numpy as np
+
+    data = np.array(pareto_front)
+    x, y = data.T
+    plt.scatter(x,y)
+    plt.show()
